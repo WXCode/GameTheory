@@ -1,5 +1,7 @@
 import random
 
+# Stag Hunt
+
 class Agent:
     def __init__(self, id):
         self.id = id
