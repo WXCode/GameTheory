@@ -3,37 +3,50 @@ import random
 # Stag Hunt
 
 
-class Strategy:
-    def __init__(self, strategy):
-        if strategy == "tit_for_tat":
-            return self.tit_for_tat()
-        else:
-            return self.benevolent_tit_for_tat()
-
-    def tit_for_tat(self,last_5_moves):
-        return last_5_moves[-1]
-        
-    def benevolent_tit_for_tat(self,last_5_moves):
-        if last_5_moves[-1] == "cooperate": # Check for the last move
-            return "cooperate"
-        elif last_5_moves[-2] == "defect":
-            return "defect"
-        else:
-            return "cooperate"
-
 class Agent:
-    def __init__(self, id,Strategy):
+    strategy = None
+    def __init__(self, id,strategy_type):
         self.id = id
         self.action = None
-        self.reward = None
-        self.strategy = Strategy
+        self.reward = []
+        self.strategy = Strategy(strategy_type).strategy
+        # self.strategy =None
 
     def choose_action(self, actions):
         # Replace this with your agent's decision-making logic based on game theory principles.
         # This example randomly chooses an action.
 
         ## This should be replaced with the strategy
-        self.action = random.choice(actions)
+        # self.action = random.choice(actions)
+        self.action  = self.strategy(self.reward)
+        
+class Strategy:
+    
+    strategy = None
+    
+    def __init__(self, strategy_type):
+        if strategy_type == "tit_for_tat":
+            self.strategy = self.tit_for_tat
+        else:
+            self.strategy =  self.benevolent_tit_for_tat
+
+    def tit_for_tat(self,reward):
+        if reward ==[]:
+            return random.choice(["cooperate","defect"])  ## Start with a random choice
+        elif reward[-1] == 2:
+            return "cooperate"
+        else:
+            return "defect"
+        
+    def benevolent_tit_for_tat(self,reward):
+        if reward[-1] == 2: # Check for the last move
+            return "cooperate"
+        elif reward[-2] == 0:
+            return "defect"
+        else:
+            return "cooperate"
+        
+
 
 class Environment:
     
@@ -56,12 +69,13 @@ class Environment:
         self.actions = actions
         self.agents = [Agent(i,"tit_for_tat") for i in range(num_agents)]
         self.rewards = {agent.id: 0 for agent in self.agents}
+        
 
     def run(self):
-        # Agents choose actions simultaneously
+        # Agents choose actions simultaneously  
         for agent in self.agents:
             agent.choose_action(self.actions)
-            action_space = agent.action
+
 
         # Calculate rewards based on the chosen actions (replace with your game logic)
         rewards = {agent.id: 0 for agent in self.agents}  # Initialize all rewards to 0
@@ -69,10 +83,14 @@ class Environment:
 
         if num_agents == 2: #two player games
             rewards = self.two_player_reward_map(self.agents)
+            for agent in self.agents:
+                agent.reward.append(rewards[agent.id])
+        
         # Update agent states based on rewards (optional)
         for agent in self.agents:
             # ... (Update agent state based on reward)
             print("reward")
+            # print(agent.reward)
             return rewards
 
 
