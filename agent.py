@@ -39,15 +39,15 @@ class Strategy:
             return "defect"
         
     def benevolent_tit_for_tat(self,reward):
-        if reward[-1] == 2: # Check for the last move
+        if len(reward) < 2:
+            return random.choice(["cooperate","defect"])  ## Start with a random choice
+        elif reward[-1] == 2: # Check for the last move
             return "cooperate"
         elif reward[-2] == 0:
             return "defect"
         else:
             return "cooperate"
         
-
-
 class Environment:
     
     def two_player_reward_map(self,Agent):
@@ -67,7 +67,7 @@ class Environment:
     def __init__(self, num_agents, actions):
         self.num_agents = num_agents
         self.actions = actions
-        self.agents = [Agent(i,"tit_for_tat") for i in range(num_agents)]
+        self.agents = [Agent(i,"benv") for i in range(num_agents)]
         self.rewards = {agent.id: 0 for agent in self.agents}
         
 
