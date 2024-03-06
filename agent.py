@@ -2,11 +2,31 @@ import random
 
 # Stag Hunt
 
+
+class Strategy:
+    def __init__(self, strategy):
+        if strategy == "tit_for_tat":
+            return self.tit_for_tat()
+        else:
+            return self.benevolent_tit_for_tat()
+
+    def tit_for_tat(self,last_5_moves):
+        return last_5_moves[-1]
+        
+    def benevolent_tit_for_tat(self,last_5_moves):
+        if last_5_moves[-1] == "cooperate": # Check for the last move
+            return "cooperate"
+        elif last_5_moves[-2] == "defect":
+            return "defect"
+        else:
+            return "cooperate"
+
 class Agent:
-    def __init__(self, id):
+    def __init__(self, id,Strategy):
         self.id = id
         self.action = None
         self.reward = None
+        self.strategy = Strategy
 
     def choose_action(self, actions):
         # Replace this with your agent's decision-making logic based on game theory principles.
@@ -16,11 +36,6 @@ class Agent:
         self.action = random.choice(actions)
 
 class Environment:
-
-    # REWARD_MAP = {["cooperate","cooperate"]: 2,
-    #               ["defect","cooperate"]: 1,
-    #               ["cooperate","defect"]: 0,
-    #               ["defect","defect"]: 0, }
     
     def two_player_reward_map(self,Agent):
         p1_action = Agent[0].action
@@ -39,7 +54,7 @@ class Environment:
     def __init__(self, num_agents, actions):
         self.num_agents = num_agents
         self.actions = actions
-        self.agents = [Agent(i) for i in range(num_agents)]
+        self.agents = [Agent(i,"tit_for_tat") for i in range(num_agents)]
         self.rewards = {agent.id: 0 for agent in self.agents}
 
     def run(self):
