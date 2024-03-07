@@ -1,114 +1,85 @@
 import random
 
-# Stag Hunt
-
-
 class Agent:
-    strategy = None
-    def __init__(self, id,strategy_type):
-        self.id = id
+    def __init__(self, agent_id, strategy):
+        self.id = agent_id
         self.action = None
-        self.reward = []
-        self.strategy = Strategy(strategy_type).strategy
-        # self.strategy =None
+        self.reward_history = []
+        self.strategy = Strategy(strategy)
 
-    def choose_action(self, actions):
-        # Replace this with your agent's decision-making logic based on game theory principles.
-        # This example randomly chooses an action.
+    def choose_action(self):
+        self.action = self.strategy.choose_action(self.reward_history)
 
-        ## This should be replaced with the strategy
-        # self.action = random.choice(actions)
-        self.action  = self.strategy(self.reward)
-        
 class Strategy:
-    
-    strategy = None
-    
     def __init__(self, strategy_type):
         if strategy_type == "tit_for_tat":
-            self.strategy = self.tit_for_tat
+            self.strategy_func = self.tit_for_tat
         else:
-            self.strategy =  self.benevolent_tit_for_tat
+            self.strategy_func = self.benevolent_tit_for_tat
 
-    def tit_for_tat(self,reward):
-        if reward ==[]:
-            return random.choice(["cooperate","defect"])  ## Start with a random choice
-        elif reward[-1] == 2:
+    def choose_action(self, reward_history):
+        return self.strategy_func(reward_history)
+
+    def tit_for_tat(self, reward_history):
+        if not reward_history:
+            return random.choice(["cooperate", "defect"])
+        elif reward_history[-1] == 2:
             return "cooperate"
         else:
             return "defect"
-        
-    def benevolent_tit_for_tat(self,reward):
-        if len(reward) < 2:
-            return random.choice(["cooperate","defect"])  ## Start with a random choice
-        elif reward[-1] == 2: # Check for the last move
+
+    def benevolent_tit_for_tat(self, reward_history):
+        if len(reward_history) < 2:
+            return random.choice(["cooperate", "defect"])
+        elif reward_history[-1] == 2:
             return "cooperate"
-        elif reward[-2] == 0:
+        elif reward_history[-2] == 0:
             return "defect"
         else:
             return "cooperate"
-        
+
 class Environment:
-    
-    def two_player_reward_map(self,Agent):
-        p1_action = Agent[0].action
-        p2_action = Agent[1].action
+    def two_player_reward_map(self, agents):
+        p1_action = agents[0].action
+        p2_action = agents[1].action
         if p1_action == "cooperate":
             if p2_action == "defect":
-                return [0,1]
+                return [0, 1]
             else:
-                return [2,2]
+                return [2, 2]
         else:
             if p2_action == "cooperate":
-                return [1,0]
+                return [1, 0]
             else:
-                return [0,0]
-                
+                return [0, 0]
+
     def __init__(self, num_agents, actions):
         self.num_agents = num_agents
         self.actions = actions
-        self.agents = [Agent(i,"benv") for i in range(num_agents)]
-        self.rewards = {agent.id: 0 for agent in self.agents}
-        
+        self.agents = [Agent(i, "benv") for i in range(num_agents)]
 
     def run(self):
-        # Agents choose actions simultaneously  
         for agent in self.agents:
-            agent.choose_action(self.actions)
+            agent.choose_action()
 
-
-        # Calculate rewards based on the chosen actions (replace with your game logic)
-        rewards = {agent.id: 0 for agent in self.agents}  # Initialize all rewards to 0
-        # ... (Implement your game logic to calculate rewards based on chosen actions)
-
-        if num_agents == 2: #two player games
-            rewards = self.two_player_reward_map(self.agents)
-            for agent in self.agents:
-                agent.reward.append(rewards[agent.id])
-        
-        # Update agent states based on rewards (optional)
+        rewards = self.two_player_reward_map(self.agents)
         for agent in self.agents:
-            # ... (Update agent state based on reward)
-            print("reward")
-            # print(agent.reward)
-            return rewards
+            agent.reward_history.append(rewards[agent.id])
 
+        return rewards
 
 # Example usage
 num_agents = 2
-total_rewards = [0 for i in range(num_agents)]
+total_rewards = [0 for _ in range(num_agents)]
 actions = ["cooperate", "defect"]
 env = Environment(num_agents, actions)
-i = 0
-while(i < 1000):
+
+for _ in range(1000):
     rewards = env.run()
 
-    # Print the chosen actions and rewards for each agent
     for agent in env.agents:
         print(f"Agent {agent.id}: Action - {agent.action}, Reward - {rewards[agent.id]}")
-        total_rewards[agent.id] = total_rewards[agent.id] + rewards[agent.id]
-
-    i = i+1
+        total_rewards[agent.id] += rewards[agent.id]
 
 print("In the end...")
 print(total_rewards)
